@@ -1,3 +1,7 @@
+import { Counter } from "@prisma/client";
+import { db } from "./db/client";
+
+
 export const anaylzeSpelling = async (
    message: string,
    chanceOfAction: number, 
@@ -69,3 +73,37 @@ const fetchPun = async () => {
    });
    return await punResp.json();
 };
+
+export const counters = async () => {
+   return await db.counter.findMany();
+}
+
+export const createCounter = async (name: string, message: string) => {
+   const newCtr = await db.counter.create({
+      data: {
+         name,
+         message,
+      }
+   })
+   return newCtr;
+}
+
+export const incrementCounter = async (name: string) => {
+   const currCounter = await db.counter.findFirst({ where: { name }});
+   if (currCounter == null) throw new Error(`Could not find counter with name: ${name}`);
+   
+   const incCounter = db.counter.update({
+      where: { name },
+      data: { value: currCounter.value + 1 }
+   })
+   return incCounter;
+}
+
+export const displayMessage = (counter: Counter) => {
+   const msg = counter.message;
+   const val = counter.value + '';
+   if (msg.includes('{%d}'))
+      return msg.replace('{%d}', val);
+   else 
+      return `${msg}: ${val}`;
+}
