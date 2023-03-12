@@ -8,6 +8,7 @@ import {
    counters, 
    createCounter, 
    displayMessage, 
+   fetchPlayerMatchHistory, 
    fuckYouToo, 
    incrementCounter, 
    randomInsult, 
@@ -55,6 +56,16 @@ const counterManageCommand = new SlashCommandBuilder()
          .setDescription('Get all counters. All counters are currently public.')
    )
 
+const matchHistoryCommand = new SlashCommandBuilder()
+   .setName('hist')
+   .setDescription('Get Apex Legends match history of a player.')
+   .addStringOption((option) => 
+      option
+         .setName('user')
+         .setDescription('origin user name.')
+         .setRequired(true)
+   );
+
 const countCommand = new SlashCommandBuilder()
    .setName('count')
    .setDescription('Increment a specific counter')
@@ -73,6 +84,7 @@ const commands = [
   roboCommand.toJSON(),
   counterManageCommand.toJSON(),
   countCommand.toJSON(),
+  matchHistoryCommand.toJSON(),
   ping.toJSON()
 ];
 
@@ -128,7 +140,25 @@ configCommands(commands)
             const name = interaction.options.get('name')?.value as string;
             const counter = await incrementCounter(name);
             const reply = displayMessage(counter);
-            interaction.reply(reply);
+            await interaction.reply(reply);
+            break;
+         case 'hist':
+            const userId = interaction.options.get('user')?.value as string;
+            const summary = await fetchPlayerMatchHistory('origin', userId);
+            const characterName = summary.data.items[0].matches[0].metadata.legend.displayValue;
+            const characterUrl =  summary.data.items[0].matches[0].metadata.legendPortraitImageUrl.value;
+            const killStat = summary.data.items[0].stats.kills.value;
+            const rankScoreChange = summary.data.items[0].stats.rankScoreChange.value;
+            const apexEmbed = new EmbedBuilder()
+                           .setColor('DarkGrey')
+                           .setTitle(`Played as ${characterName}`)
+                           .setDescription(':EZ:')
+                           .setThumbnail(characterUrl)
+                           .addFields(
+                              { name: 'Kills', value: killStat + "", inline: true },
+                              { name: 'RP Change', value: rankScoreChange + "", inline: true }
+                           )
+            await interaction.reply({ embeds: [apexEmbed] });
             break;
       }
    });

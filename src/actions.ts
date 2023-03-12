@@ -1,6 +1,7 @@
 import { Counter } from "@prisma/client";
 import { db } from "./db/client";
 
+const TRN_API_KEY = process.env.TRACK_TOKEN ?? '';
 
 export const anaylzeSpelling = async (
    message: string,
@@ -107,3 +108,15 @@ export const displayMessage = (counter: Counter) => {
    else 
       return `${msg}: ${val}`;
 }
+
+export const fetchPlayerMatchHistory = async (platform: string, userId: string) => {
+
+   const trackerResp = await fetch(`https://public-api.tracker.gg/v2/apex/standard/profile/${platform}/${userId}/sessions`,
+   {
+      method: "GET",
+      headers: {
+         "TRN-Api-Key": TRN_API_KEY
+      }
+   });
+   return await trackerResp.json();
+};
