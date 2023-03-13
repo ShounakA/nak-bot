@@ -1,7 +1,8 @@
 import dictionaryEn from 'dictionary-en'
-import { Client, GatewayIntentBits, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { Client, GatewayIntentBits, EmbedBuilder, SlashCommandBuilder, CacheType, Interaction, ChatInputCommandInteraction } from 'discord.js';
 import dotenv from 'dotenv';
 import NSpell from 'nspell';
+import { filter, fromEvent, map } from 'rxjs';
 
 import { 
    anaylzeSpelling, 
@@ -96,13 +97,20 @@ configCommands(commands)
                                           GatewayIntentBits.GuildMessages, 
                                           GatewayIntentBits.MessageContent
    ]});
-   
-   client.on('ready', () => {
+
+   const readyStream$ = fromEvent(client, 'ready');
+   const interactionStream$ = fromEvent(client, 'interactionCreate')
+   .pipe(
+      filter((interaction) => (interaction as Interaction<CacheType>).isChatInputCommand()),
+      map((interaction) => (interaction as ChatInputCommandInteraction<CacheType>))
+   );
+
+
+   readyStream$.subscribe(() => {
       console.log(`Logged in as ${client?.user?.tag}!`);
    });
    
-   client.on('interactionCreate', async (interaction) => {
-      if (!interaction.isChatInputCommand()) return;
+   interactionStream$.subscribe(async (interaction) => {
       switch(interaction.commandName) {
          case 'ping':
             const createdAt = interaction.createdTimestamp;
