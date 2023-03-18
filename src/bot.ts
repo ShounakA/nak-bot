@@ -1,16 +1,11 @@
+import "reflect-metadata";
 import dictionaryEn from "dictionary-en";
 import {
-  Client,
-  GatewayIntentBits,
   EmbedBuilder,
-  SlashCommandBuilder,
-  CacheType,
-  Interaction,
-  ChatInputCommandInteraction,
+  SlashCommandBuilder
 } from "discord.js";
-import dotenv from "dotenv";
+
 import NSpell from "nspell";
-import { filter, fromEvent, map } from "rxjs";
 
 import {
   anaylzeSpelling,
@@ -23,9 +18,10 @@ import {
   randomInsult,
   randomPun,
 } from "./actions";
-import { configCommands } from "./commands";
-
-dotenv.config();
+import { container } from "tsyringe";
+import { Gateway } from "./gateway";
+import { Bot } from "./appcmd";
+import { startup } from "./startup";
 
 let checker: any = null;
 const ondictionary = (err: any, dict: any) => {
@@ -106,31 +102,23 @@ const commands = [
   ping.toJSON(),
 ];
 
-configCommands(commands)
-  .then((result) => {
-    const client = new Client({
-      intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-      ],
-    });
+// Startup the program by registeriing all your services.
+startup();
+const gateway = container.resolve(Gateway);
+const bot = container.resolve(Bot);
 
-    const readyStream$ = fromEvent(client, "ready");
-    const interactionStream$ = fromEvent(client, "interactionCreate").pipe(
-      filter((interaction) =>
-        (interaction as Interaction<CacheType>).isChatInputCommand()
-      ),
-      map(
-        (interaction) => interaction as ChatInputCommandInteraction<CacheType>
-      )
-    );
-
+// Register the bots commands, then get the event streams.
+bot.start(commands)
+  .then((_result) => {
+    const readyStream$ = gateway.readyStream$;
+    const interactionStream$ = gateway.interactionStream$;
+    const messageStream$ = gateway.messageStream$;
+    
     readyStream$.subscribe(() => {
-      console.log(`Logged in as ${client?.user?.tag}!`);
+      console.log(`Logged in as ${gateway.botUser()?.tag}!`);
     });
-
-    interactionStream$.subscribe(async (interaction) => {
+    
+    interactionStream$.subscribe( async (interaction) => {
       switch (interaction.commandName) {
         case "ping":
           const createdAt = interaction.createdTimestamp;
@@ -148,7 +136,7 @@ configCommands(commands)
             .setColor("DarkGrey")
             .setTitle("Your Robot")
             .setImage(image);
-
+    
           await interaction.reply({ embeds: [embed] });
           break;
         case "counter":
@@ -199,14 +187,14 @@ configCommands(commands)
           break;
       }
     });
-
-    client.on("messageCreate", async (message) => {
+    
+    messageStream$.subscribe( async (message) => {
       if (message.author.bot) return;
       let mess = message.content;
       await anaylzeSpelling(mess, 0.05, async (wordInMessage) => {
         if (!checker.correct(wordInMessage)) {
           let sugg: string[] = checker.suggest(wordInMessage);
-          const emote = client.emojis.cache.find(
+          const emote = gateway.emojis().cache.find(
             (emoji) => emoji.name === "5Head"
           );
           if (sugg.length > 0) {
@@ -215,7 +203,7 @@ configCommands(commands)
               .join(", ")}`;
             await message.reply(reply);
           } else {
-            const emote = client.emojis.cache.find(
+            const emote = gateway.emojis().cache.find(
               (emoji) => emoji.name === "Pepega"
             );
             await message.reply(`${emote} wat`);
@@ -235,9 +223,9 @@ configCommands(commands)
         await message.reply(`${userToReply} - ${replyPun}`);
       });
     });
-
-    client.login(process.env.DISCORD_BOT_TOKEN);
+    
+    gateway.login();
   })
   .catch((err) => {
-    console.log(err);
+    console.error(err);
   });
