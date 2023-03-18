@@ -1,11 +1,6 @@
 import dotenv from "dotenv";
-import {
-  Client,
-  GatewayIntentBits,
-  REST,
-} from "discord.js";
+import { Client, GatewayIntentBits, REST } from "discord.js";
 import { container } from "tsyringe";
-
 
 export function startup() {
   dotenv.config();
@@ -24,4 +19,4 @@ export function startup() {
   container.register("CLIENT_ID", { useValue: CLIENT_ID });
   container.register<Client>(Client, { useValue: client });
   container.register<REST>(REST, { useValue: rest });
-};
+}

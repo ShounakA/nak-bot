@@ -9,8 +9,6 @@ import NSpell from "nspell";
 
 import {
   anaylzeSpelling,
-  counters,
-  createCounter,
   displayMessage,
   fetchPlayerMatchHistory,
   fuckYouToo,
@@ -20,8 +18,11 @@ import {
 } from "./actions";
 import { container } from "tsyringe";
 import { Gateway } from "./gateway";
-import { Bot } from "./appcmd";
+import { App } from "./app";
 import { startup } from "./startup";
+import { Ping } from "./actions/ping";
+import { Robo } from "./actions/robo";
+import { Counter } from "./actions/counter";
 
 let checker: any = null;
 const ondictionary = (err: any, dict: any) => {
@@ -29,47 +30,6 @@ const ondictionary = (err: any, dict: any) => {
   checker = NSpell(dict);
 };
 dictionaryEn(ondictionary);
-
-const roboCommand = new SlashCommandBuilder()
-  .setName("robo")
-  .setDescription("Generate a robot from you name")
-  .addStringOption((option) =>
-    option
-      .setName("seed")
-      .setDescription("make your robot more special.")
-      .setRequired(false)
-  );
-
-const counterManageCommand = new SlashCommandBuilder()
-  .setName("counter")
-  .setDescription("Manage all the counters.")
-  .addSubcommand((sub) =>
-    sub
-      .setName("create")
-      .setDescription("Create a counter. All counter are public.")
-      .addStringOption((option) =>
-        option
-          .setName("name")
-          .setDescription(
-            "Make a specific counter with name. Name must be unique."
-          )
-          .setRequired(true)
-      )
-      .addStringOption((option) =>
-        option
-          .setName("display")
-          .setDescription(
-            "The display message when you get the value. Add '{%d}' to your message for the value position."
-          )
-          .setMaxLength(150)
-          .setRequired(true)
-      )
-  )
-  .addSubcommand((sub) =>
-    sub
-      .setName("list")
-      .setDescription("Get all counters. All counters are currently public.")
-  );
 
 const matchHistoryCommand = new SlashCommandBuilder()
   .setName("hist")
@@ -90,25 +50,24 @@ const countCommand = new SlashCommandBuilder()
       .setRequired(true)
   );
 
-const ping = new SlashCommandBuilder()
-  .setName("ping")
-  .setDescription("Ping the bot server");
-
-const commands = [
-  roboCommand.toJSON(),
-  counterManageCommand.toJSON(),
-  countCommand.toJSON(),
-  matchHistoryCommand.toJSON(),
-  ping.toJSON(),
-];
-
-// Startup the program by registeriing all your services.
+// Startup the program by registering all your services.
 startup();
 const gateway = container.resolve(Gateway);
-const bot = container.resolve(Bot);
+const app = container.resolve(App);
+const ping = container.resolve(Ping);
+const robo = container.resolve(Robo);
+const counterManage = container.resolve(Counter);
+
+const commands = [
+  robo.command().toJSON(),
+  counterManage.command().toJSON(),
+  countCommand.toJSON(),
+  matchHistoryCommand.toJSON(),
+  ping.command().toJSON(),
+];
 
 // Register the bots commands, then get the event streams.
-bot.start(commands)
+app.start(commands)
   .then((_result) => {
     const readyStream$ = gateway.readyStream$;
     const interactionStream$ = gateway.interactionStream$;
@@ -120,43 +79,6 @@ bot.start(commands)
     
     interactionStream$.subscribe( async (interaction) => {
       switch (interaction.commandName) {
-        case "ping":
-          const createdAt = interaction.createdTimestamp;
-          const nowAt = Date.now();
-          const diff = nowAt - createdAt;
-          await interaction.reply(`Pong! - replied in: ${diff}ms`);
-          break;
-        case "robo":
-          const seed = interaction.options.get("seed")?.value;
-          const query = !seed
-            ? encodeURI(interaction.user.username)
-            : encodeURI(`${interaction.user.username}+${seed}`);
-          const image = `https://www.robohash.org/${query}`;
-          const embed = new EmbedBuilder()
-            .setColor("DarkGrey")
-            .setTitle("Your Robot")
-            .setImage(image);
-    
-          await interaction.reply({ embeds: [embed] });
-          break;
-        case "counter":
-          switch (interaction.options.getSubcommand()) {
-            case "list":
-              const counterList = await counters();
-              const names = counterList.map((ctr) => ctr.name);
-              await interaction.reply(`Counters -> ${names}`);
-              break;
-            case "create":
-              const optName = interaction.options.get("name")?.value as string;
-              const optDisplay = interaction.options.get("display")
-                ?.value as string;
-              const newCtr = await createCounter(optName, optDisplay);
-              await interaction.reply(
-                `New counter created! ${newCtr.name} -> ${newCtr.message}`
-              );
-              break;
-          }
-          break;
         case "count":
           const name = interaction.options.get("name")?.value as string;
           const counter = await incrementCounter(name);
@@ -223,7 +145,6 @@ bot.start(commands)
         await message.reply(`${userToReply} - ${replyPun}`);
       });
     });
-    
     gateway.login();
   })
   .catch((err) => {
