@@ -3,17 +3,20 @@
   "packageManager": "yarn@3.2.3",
   "scripts": {
     "dev": "yarn build && node build/src/bot.js",
-    "build": "swc ./src -d ./build/src -q",
+    "build": "swc ./src -d ./build/src -q ",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "db:devproxy": "pscale connect nak-data staging",
-    "db:format": "prisma format"
+    "db:format": "prisma format",
+    "format:fix": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^4.7.1",
+    "dalai": "^0.2.33",
     "dictionary-en": "^3.2.0",
     "discord.js": "^14.7.1",
     "nspell": "^2.1.5",
@@ -27,7 +30,9 @@
     "@swc/core": "^1.3.39",
     "@types/node": "^18.11.15",
     "@types/nspell": "^2.1.3",
+    "chokidar": "^3.5.3",
     "dotenv": "^16.0.3",
+    "prettier": "2.8.4",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4"
   }
