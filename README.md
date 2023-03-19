@@ -16,8 +16,8 @@
 `bot.ts` is the entry point.
 
 - startup the bot services
-- register the app commands to discord gateway api
 - listen for ready, interaction create, and message create events.
+- register the app commands to discord gateway api
 
 ## Adding a bot interaction.
 

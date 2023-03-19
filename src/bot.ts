@@ -30,14 +30,19 @@ dictionaryEn(ondictionary);
 // Do this before you start resolving. instances
 startup();
 
+// Resolve the gateway client and the app.
+// These should be resolved before any action.
 const gateway = container.resolve(Gateway);
 const app = container.resolve(App);
+
+// Iteractions
 const ping = container.resolve(Ping);
 const robo = container.resolve(Robo);
 const counterManage = container.resolve(Counter);
 const counter = container.resolve(Count);
 const hist = container.resolve(Hist);
 
+//Slash Commands and their Schema
 const commands = [
   robo.command().toJSON(),
   counterManage.command().toJSON(),
@@ -46,7 +51,7 @@ const commands = [
   ping.command().toJSON(),
 ];
 
-// Register the bots commands, then get the event streams.
+// Register the bots commands, then get the event streams, and login.
 app
   .start(commands)
   .then((_result) => {
