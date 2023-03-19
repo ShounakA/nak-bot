@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from 'discord.js';
 import {
   concatMap,
   filter,
@@ -7,15 +7,15 @@ import {
   mergeAll,
   switchMap,
   toArray,
-} from "rxjs";
-import { injectable } from "tsyringe";
-import { Prisma } from "../db/prisma";
-import { Gateway } from "../gateway";
+} from 'rxjs';
+import { injectable } from 'tsyringe';
+import { Prisma } from '../db/prisma';
+import { Gateway } from '../gateway';
 
 @injectable()
 export class Counter {
-  private commandName = "counter";
-  private description = "Manage all the counters.";
+  private commandName = 'counter';
+  private description = 'Manage all the counters.';
 
   constructor(private gateway: Gateway, private prisma: Prisma) {
     const counter$ = this.gateway.interactionStream$.pipe(
@@ -23,7 +23,7 @@ export class Counter {
     );
     counter$
       .pipe(
-        filter((interaction) => interaction.options.getSubcommand() === "list"),
+        filter((interaction) => interaction.options.getSubcommand() === 'list'),
         switchMap((interaction) =>
           this.getCounters().pipe(
             mergeAll(),
@@ -42,11 +42,11 @@ export class Counter {
     counter$
       .pipe(
         filter(
-          (interaction) => interaction.options.getSubcommand() === "create"
+          (interaction) => interaction.options.getSubcommand() === 'create'
         ),
         switchMap((interaction) => {
-          const optName = interaction.options.get("name")?.value as string;
-          const optDisplay = interaction.options.get("display")
+          const optName = interaction.options.get('name')?.value as string;
+          const optDisplay = interaction.options.get('display')
             ?.value as string;
           return this.createCounter(optName, optDisplay).pipe(
             concatMap((newCtr) =>
@@ -70,19 +70,19 @@ export class Counter {
       .setDescription(this.description)
       .addSubcommand((sub) =>
         sub
-          .setName("create")
-          .setDescription("Create a counter. All counter are public.")
+          .setName('create')
+          .setDescription('Create a counter. All counter are public.')
           .addStringOption((option) =>
             option
-              .setName("name")
+              .setName('name')
               .setDescription(
-                "Make a specific counter with name. Name must be unique."
+                'Make a specific counter with name. Name must be unique.'
               )
               .setRequired(true)
           )
           .addStringOption((option) =>
             option
-              .setName("display")
+              .setName('display')
               .setDescription(
                 "The display message when you get the value. Add '{%d}' to your message for the value position."
               )
@@ -92,9 +92,9 @@ export class Counter {
       )
       .addSubcommand((sub) =>
         sub
-          .setName("list")
+          .setName('list')
           .setDescription(
-            "Get all counters. All counters are currently public."
+            'Get all counters. All counters are currently public.'
           )
       );
   }

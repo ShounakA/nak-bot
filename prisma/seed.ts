@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -22,18 +22,18 @@ async function main() {
 
 const seedData = [
   {
-    name: "test-counter-1",
-    message: "Test counter has been {%d} times",
+    name: 'test-counter-1',
+    message: 'Test counter has been {%d} times',
     value: 0,
   },
   {
-    name: "test-counter-2",
-    message: "Test counter has been {%d} times",
+    name: 'test-counter-2',
+    message: 'Test counter has been {%d} times',
     value: 0,
   },
   {
-    name: "test-counter-3",
-    message: "{%d} thats how many times you fucjked up",
+    name: 'test-counter-3',
+    message: '{%d} thats how many times you fucjked up',
     value: 0,
   },
 ];

@@ -5,9 +5,9 @@ import {
   Events,
   Interaction,
   Message,
-} from "discord.js";
-import { filter, fromEvent, map } from "rxjs";
-import { inject, injectable } from "tsyringe";
+} from 'discord.js';
+import { filter, fromEvent, map } from 'rxjs';
+import { inject, injectable } from 'tsyringe';
 
 /**
  * Class to interact with Discord Gateway API
@@ -21,7 +21,7 @@ export class Gateway {
    */
   constructor(
     @inject(Client) private client: Client,
-    @inject("BOT_TOKEN") private bot_token: string
+    @inject('BOT_TOKEN') private bot_token: string
   ) {}
 
   /**
@@ -70,7 +70,7 @@ export class Gateway {
    */
   public botUser() {
     if (!this.client.user)
-      throw new Error("Unexpected no client user. Reload the bot?");
+      throw new Error('Unexpected no client user. Reload the bot?');
     return this.client.user;
   }
 }

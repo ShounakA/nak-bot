@@ -1,23 +1,23 @@
-import "reflect-metadata";
-import { container } from "tsyringe";
+import 'reflect-metadata';
+import { container } from 'tsyringe';
 
-import dictionaryEn from "dictionary-en";
-import NSpell from "nspell";
+import dictionaryEn from 'dictionary-en';
+import NSpell from 'nspell';
 import {
   anaylzeSpelling,
   fuckYouToo,
   randomInsult,
   randomPun,
-} from "./responses";
+} from './responses';
 
-import { Gateway } from "./gateway";
-import { App } from "./app";
-import { startup } from "./startup";
-import { Ping } from "./actions/ping";
-import { Robo } from "./actions/robo";
-import { Counter } from "./actions/counter";
-import { Count } from "./actions/count";
-import { Hist } from "./actions/hist";
+import { Gateway } from './gateway';
+import { App } from './app';
+import { startup } from './startup';
+import { Ping } from './actions/ping';
+import { Robo } from './actions/robo';
+import { Counter } from './actions/counter';
+import { Count } from './actions/count';
+import { Hist } from './actions/hist';
 
 let checker: any = null;
 const ondictionary = (err: any, dict: any) => {
@@ -68,16 +68,16 @@ app
           let sugg: string[] = checker.suggest(wordInMessage);
           const emote = gateway
             .emojis()
-            .cache.find((emoji) => emoji.name === "5Head");
+            .cache.find((emoji) => emoji.name === '5Head');
           if (sugg.length > 0) {
             let reply = `${emote} I think you mean? ${sugg
               .slice(0, 3)
-              .join(", ")}`;
+              .join(', ')}`;
             await message.reply(reply);
           } else {
             const emote = gateway
               .emojis()
-              .cache.find((emoji) => emoji.name === "Pepega");
+              .cache.find((emoji) => emoji.name === 'Pepega');
             await message.reply(`${emote} wat`);
           }
         }

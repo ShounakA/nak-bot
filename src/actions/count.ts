@@ -1,21 +1,21 @@
-import { Counter } from "@prisma/client";
-import { SlashCommandBuilder } from "discord.js";
-import { filter, from, exhaustMap, catchError } from "rxjs";
-import { injectable } from "tsyringe";
-import { Prisma } from "../db/prisma";
-import { Gateway } from "../gateway";
+import { Counter } from '@prisma/client';
+import { SlashCommandBuilder } from 'discord.js';
+import { filter, from, exhaustMap, catchError } from 'rxjs';
+import { injectable } from 'tsyringe';
+import { Prisma } from '../db/prisma';
+import { Gateway } from '../gateway';
 
 @injectable()
 export class Count {
-  public commandName = "count";
-  public desc = "Increment a specific counter";
+  public commandName = 'count';
+  public desc = 'Increment a specific counter';
 
   constructor(private gateway: Gateway, private prisma: Prisma) {
     this.gateway.interactionStream$
       .pipe(
         filter((interaction) => interaction.commandName === this.commandName),
         exhaustMap((interaction) => {
-          const name = interaction.options.get("name")?.value as string;
+          const name = interaction.options.get('name')?.value as string;
           return this.incrementCounter(name).pipe(
             exhaustMap((counter) => {
               const reply = this.displayMessage(counter);
@@ -39,9 +39,9 @@ export class Count {
       .setDescription(this.desc)
       .addStringOption((option) =>
         option
-          .setName("name")
+          .setName('name')
           .setDescription(
-            "Name of the counter to increment. Get all counter with `/counter list`"
+            'Name of the counter to increment. Get all counter with `/counter list`'
           )
           .setRequired(true)
       );
@@ -65,8 +65,8 @@ export class Count {
 
   private displayMessage(counter: Counter) {
     const msg = counter.message;
-    const val = counter.value + "";
-    if (msg.includes("{%d}")) return msg.replace("{%d}", val);
+    const val = counter.value + '';
+    if (msg.includes('{%d}')) return msg.replace('{%d}', val);
     else return `${msg}: ${val}`;
   }
 }

@@ -1,12 +1,12 @@
-import { SlashCommandBuilder } from "discord.js";
-import { filter, from, switchMap, tap } from "rxjs";
-import { injectable } from "tsyringe";
-import { Gateway } from "../gateway";
+import { SlashCommandBuilder } from 'discord.js';
+import { filter, from, switchMap, tap } from 'rxjs';
+import { injectable } from 'tsyringe';
+import { Gateway } from '../gateway';
 
 @injectable()
 export class Ping {
-  private commandName = "ping";
-  private description = "Ping the bot server";
+  private commandName = 'ping';
+  private description = 'Ping the bot server';
   constructor(private gateway: Gateway) {
     this.gateway.interactionStream$
       .pipe(
