@@ -1,18 +1,10 @@
 import "reflect-metadata";
 import dictionaryEn from "dictionary-en";
-import {
-  EmbedBuilder,
-  SlashCommandBuilder
-} from "discord.js";
-
 import NSpell from "nspell";
 
 import {
   anaylzeSpelling,
-  displayMessage,
-  fetchPlayerMatchHistory,
   fuckYouToo,
-  incrementCounter,
   randomInsult,
   randomPun,
 } from "./actions";
@@ -23,6 +15,8 @@ import { startup } from "./startup";
 import { Ping } from "./actions/ping";
 import { Robo } from "./actions/robo";
 import { Counter } from "./actions/counter";
+import { Count } from "./actions/count";
+import { Hist } from "./actions/hist";
 
 let checker: any = null;
 const ondictionary = (err: any, dict: any) => {
@@ -31,38 +25,23 @@ const ondictionary = (err: any, dict: any) => {
 };
 dictionaryEn(ondictionary);
 
-const matchHistoryCommand = new SlashCommandBuilder()
-  .setName("hist")
-  .setDescription("Get Apex Legends match history of a player.")
-  .addStringOption((option) =>
-    option.setName("user").setDescription("origin user name.").setRequired(true)
-  );
-
-const countCommand = new SlashCommandBuilder()
-  .setName("count")
-  .setDescription("Increment a specific counter")
-  .addStringOption((option) =>
-    option
-      .setName("name")
-      .setDescription(
-        "Name of the counter to increment. Get all counter with `/counter list`"
-      )
-      .setRequired(true)
-  );
-
 // Startup the program by registering all your services.
+// Do this before you start resolving. instances
 startup();
+
 const gateway = container.resolve(Gateway);
 const app = container.resolve(App);
 const ping = container.resolve(Ping);
 const robo = container.resolve(Robo);
 const counterManage = container.resolve(Counter);
+const counter = container.resolve(Count);
+const hist = container.resolve(Hist);
 
 const commands = [
   robo.command().toJSON(),
   counterManage.command().toJSON(),
-  countCommand.toJSON(),
-  matchHistoryCommand.toJSON(),
+  counter.command().toJSON(),
+  hist.command().toJSON(),
   ping.command().toJSON(),
 ];
 
@@ -70,44 +49,10 @@ const commands = [
 app.start(commands)
   .then((_result) => {
     const readyStream$ = gateway.readyStream$;
-    const interactionStream$ = gateway.interactionStream$;
     const messageStream$ = gateway.messageStream$;
-    
+
     readyStream$.subscribe(() => {
       console.log(`Logged in as ${gateway.botUser()?.tag}!`);
-    });
-    
-    interactionStream$.subscribe( async (interaction) => {
-      switch (interaction.commandName) {
-        case "count":
-          const name = interaction.options.get("name")?.value as string;
-          const counter = await incrementCounter(name);
-          const reply = displayMessage(counter);
-          await interaction.reply(reply);
-          break;
-        case "hist":
-          const userId = interaction.options.get("user")?.value as string;
-          const summary = await fetchPlayerMatchHistory("origin", userId);
-          const characterName =
-            summary.data.items[0].matches[0].metadata.legend.displayValue;
-          const characterUrl =
-            summary.data.items[0].matches[0].metadata.legendPortraitImageUrl
-              .value;
-          const killStat = summary.data.items[0].stats.kills.value;
-          const rankScoreChange =
-            summary.data.items[0].stats.rankScoreChange.value;
-          const apexEmbed = new EmbedBuilder()
-            .setColor("DarkGrey")
-            .setTitle(`Played as ${characterName}`)
-            .setDescription(":EZ:")
-            .setThumbnail(characterUrl)
-            .addFields(
-              { name: "Kills", value: killStat + "", inline: true },
-              { name: "RP Change", value: rankScoreChange + "", inline: true }
-            );
-          await interaction.reply({ embeds: [apexEmbed] });
-          break;
-      }
     });
     
     messageStream$.subscribe( async (message) => {

@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
 import { concatMap, filter, from, map, mergeAll, switchMap, toArray } from "rxjs";
 import { injectable } from "tsyringe";
-import { counters, createCounter } from "../actions";
+import { Prisma } from "../db/prisma";
 import { Gateway } from "../gateway";
 
 @injectable()
@@ -9,18 +9,17 @@ export class Counter {
    private commandName ="counter";
    private description = "Manage all the counters.";
 
-   constructor(private gateway: Gateway) {
+   constructor(private gateway: Gateway, private prisma: Prisma) {
       const counter$ = this.gateway.interactionStream$.pipe(
          filter((interaction) => interaction.commandName === this.commandName)
        );
-
        counter$.pipe(
          filter((interaction) => interaction.options.getSubcommand() === "list"),
          switchMap((interaction) => this.getCounters().pipe(
-            mergeAll(),
-            map((ctr) => ctr.name),
-            toArray(),
-            switchMap((names) => from(interaction.reply(`Counters -> ${names}`)))
+           mergeAll(),
+           map((ctr) => ctr.name),
+           toArray(),
+           switchMap((names) => from(interaction.reply(`Counters -> ${names}`))),
          ))
        ).subscribe((reply) => {
          console.log(`Replied to ${reply.interaction.user.username}`);
@@ -40,7 +39,6 @@ export class Counter {
        ).subscribe((reply) => {
          console.log(`Replied to ${reply.interaction.user.username}`);
        });
-      
    }
 
    public command() {
@@ -78,10 +76,16 @@ export class Counter {
    }
 
    private getCounters() {
-      return from(counters());
+      return from(this.prisma.db.counter.findMany());
    }
 
-   private createCounter(name: string, display: string){
-      return from(createCounter(name, display));
+   private createCounter(name: string, message: string){
+    const newCtr = from(this.prisma.db.counter.create({
+      data: {
+        name,
+        message,
+      },
+    }));
+    return newCtr;
    }
 }

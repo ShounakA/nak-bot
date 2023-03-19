@@ -2,6 +2,7 @@ import {
   CacheType,
   ChatInputCommandInteraction,
   Client,
+  Events,
   Interaction,
   Message,
 } from "discord.js";
@@ -27,12 +28,12 @@ export class Gateway {
   /**
    * 'ready' event stream
    */
-  public readyStream$ = fromEvent(this.client, "ready");
+  public readyStream$ = fromEvent(this.client, Events.ClientReady);
 
   /**
    * 'interactionCreate' event stream
    */
-  public interactionStream$ = fromEvent(this.client, "interactionCreate").pipe(
+  public interactionStream$ = fromEvent(this.client, Events.InteractionCreate).pipe(
     filter((interaction) =>
       (interaction as Interaction<CacheType>).isChatInputCommand()
     ),
@@ -42,7 +43,7 @@ export class Gateway {
   /**
    * 'messageCreate' event stream
    */
-  public messageStream$ = fromEvent(this.client, "messageCreate").pipe(
+  public messageStream$ = fromEvent(this.client, Events.MessageCreate).pipe(
     map((message) => message as Message<boolean>)
   );
 
