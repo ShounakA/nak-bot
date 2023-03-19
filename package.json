@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@prisma/client": "^4.7.1",
-    "dalai": "^0.2.33",
     "dictionary-en": "^3.2.0",
     "discord.js": "^14.7.1",
     "nspell": "^2.1.5",
