@@ -1,48 +1,71 @@
 import { SlashCommandBuilder } from "discord.js";
-import { concatMap, filter, from, map, mergeAll, switchMap, toArray } from "rxjs";
+import {
+  concatMap,
+  filter,
+  from,
+  map,
+  mergeAll,
+  switchMap,
+  toArray,
+} from "rxjs";
 import { injectable } from "tsyringe";
 import { Prisma } from "../db/prisma";
 import { Gateway } from "../gateway";
 
 @injectable()
 export class Counter {
-   private commandName ="counter";
-   private description = "Manage all the counters.";
+  private commandName = "counter";
+  private description = "Manage all the counters.";
 
-   constructor(private gateway: Gateway, private prisma: Prisma) {
-      const counter$ = this.gateway.interactionStream$.pipe(
-         filter((interaction) => interaction.commandName === this.commandName)
-       );
-       counter$.pipe(
-         filter((interaction) => interaction.options.getSubcommand() === "list"),
-         switchMap((interaction) => this.getCounters().pipe(
-           mergeAll(),
-           map((ctr) => ctr.name),
-           toArray(),
-           switchMap((names) => from(interaction.reply(`Counters -> ${names}`))),
-         ))
-       ).subscribe((reply) => {
-         console.log(`Replied to ${reply.interaction.user.username}`);
-       });
+  constructor(private gateway: Gateway, private prisma: Prisma) {
+    const counter$ = this.gateway.interactionStream$.pipe(
+      filter((interaction) => interaction.commandName === this.commandName)
+    );
+    counter$
+      .pipe(
+        filter((interaction) => interaction.options.getSubcommand() === "list"),
+        switchMap((interaction) =>
+          this.getCounters().pipe(
+            mergeAll(),
+            map((ctr) => ctr.name),
+            toArray(),
+            switchMap((names) =>
+              from(interaction.reply(`Counters -> ${names}`))
+            )
+          )
+        )
+      )
+      .subscribe((reply) => {
+        console.log(`Replied to ${reply.interaction.user.username}`);
+      });
 
-       counter$.pipe(
-         filter((interaction) => interaction.options.getSubcommand() === "create"),
-         switchMap((interaction) => {
-            const optName = interaction.options.get("name")?.value as string;
-            const optDisplay = interaction.options.get("display")?.value as string;
-            return this.createCounter(optName, optDisplay).pipe(
-               concatMap((newCtr) => from(interaction.reply(
+    counter$
+      .pipe(
+        filter(
+          (interaction) => interaction.options.getSubcommand() === "create"
+        ),
+        switchMap((interaction) => {
+          const optName = interaction.options.get("name")?.value as string;
+          const optDisplay = interaction.options.get("display")
+            ?.value as string;
+          return this.createCounter(optName, optDisplay).pipe(
+            concatMap((newCtr) =>
+              from(
+                interaction.reply(
                   `New counter created! ${newCtr.name} -> ${newCtr.message}`
-                )))
-              );
-         })
-       ).subscribe((reply) => {
-         console.log(`Replied to ${reply.interaction.user.username}`);
-       });
-   }
+                )
+              )
+            )
+          );
+        })
+      )
+      .subscribe((reply) => {
+        console.log(`Replied to ${reply.interaction.user.username}`);
+      });
+  }
 
-   public command() {
-      return new SlashCommandBuilder()
+  public command() {
+    return new SlashCommandBuilder()
       .setName(this.commandName)
       .setDescription(this.description)
       .addSubcommand((sub) =>
@@ -70,22 +93,25 @@ export class Counter {
       .addSubcommand((sub) =>
         sub
           .setName("list")
-          .setDescription("Get all counters. All counters are currently public.")
+          .setDescription(
+            "Get all counters. All counters are currently public."
+          )
       );
-    
-   }
+  }
 
-   private getCounters() {
-      return from(this.prisma.db.counter.findMany());
-   }
+  private getCounters() {
+    return from(this.prisma.db.counter.findMany());
+  }
 
-   private createCounter(name: string, message: string){
-    const newCtr = from(this.prisma.db.counter.create({
-      data: {
-        name,
-        message,
-      },
-    }));
+  private createCounter(name: string, message: string) {
+    const newCtr = from(
+      this.prisma.db.counter.create({
+        data: {
+          name,
+          message,
+        },
+      })
+    );
     return newCtr;
-   }
+  }
 }

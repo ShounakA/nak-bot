@@ -47,31 +47,32 @@ const commands = [
 ];
 
 // Register the bots commands, then get the event streams.
-app.start(commands)
+app
+  .start(commands)
   .then((_result) => {
     const readyStream$ = gateway.readyStream$;
     const messageStream$ = gateway.messageStream$;
     readyStream$.subscribe(() => {
       console.log(`Logged in as ${gateway.botUser()?.tag}!`);
     });
-    messageStream$.subscribe( async (message) => {
+    messageStream$.subscribe(async (message) => {
       if (message.author.bot) return;
       let mess = message.content;
       await anaylzeSpelling(mess, 0.05, async (wordInMessage) => {
         if (!checker.correct(wordInMessage)) {
           let sugg: string[] = checker.suggest(wordInMessage);
-          const emote = gateway.emojis().cache.find(
-            (emoji) => emoji.name === "5Head"
-          );
+          const emote = gateway
+            .emojis()
+            .cache.find((emoji) => emoji.name === "5Head");
           if (sugg.length > 0) {
             let reply = `${emote} I think you mean? ${sugg
               .slice(0, 3)
               .join(", ")}`;
             await message.reply(reply);
           } else {
-            const emote = gateway.emojis().cache.find(
-              (emoji) => emoji.name === "Pepega"
-            );
+            const emote = gateway
+              .emojis()
+              .cache.find((emoji) => emoji.name === "Pepega");
             await message.reply(`${emote} wat`);
           }
         }
@@ -89,7 +90,7 @@ app.start(commands)
         await message.reply(`${userToReply} - ${replyPun}`);
       });
     });
-    
+
     gateway.login();
   })
   .catch((err) => {

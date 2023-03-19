@@ -70,4 +70,3 @@ const fetchPun = async () => {
   );
   return await punResp.json();
 };
-

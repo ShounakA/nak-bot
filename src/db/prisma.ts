@@ -3,6 +3,6 @@ import { injectable } from "tsyringe";
 
 @injectable()
 export class Prisma {
-   constructor() {}
-   public db = new PrismaClient();
+  constructor() {}
+  public db = new PrismaClient();
 }

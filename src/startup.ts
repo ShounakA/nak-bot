@@ -3,7 +3,7 @@ import { Client, GatewayIntentBits, REST } from "discord.js";
 import { container } from "tsyringe";
 
 /**
- * This function will startup all the bot services. 
+ * This function will startup all the bot services.
  * All the services, client, and configs should all be registered here.
  */
 export function startup() {

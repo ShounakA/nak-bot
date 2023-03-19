@@ -14,7 +14,6 @@ import { inject, injectable } from "tsyringe";
  */
 @injectable()
 export class Gateway {
-  
   /**
    * Constructor to create a discord gateway client.
    * @param client Discord Gateway client
@@ -33,7 +32,10 @@ export class Gateway {
   /**
    * 'interactionCreate' event stream
    */
-  public interactionStream$ = fromEvent(this.client, Events.InteractionCreate).pipe(
+  public interactionStream$ = fromEvent(
+    this.client,
+    Events.InteractionCreate
+  ).pipe(
     filter((interaction) =>
       (interaction as Interaction<CacheType>).isChatInputCommand()
     ),
