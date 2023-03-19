@@ -1,14 +1,15 @@
 import "reflect-metadata";
+import { container } from "tsyringe";
+
 import dictionaryEn from "dictionary-en";
 import NSpell from "nspell";
-
 import {
   anaylzeSpelling,
   fuckYouToo,
   randomInsult,
   randomPun,
-} from "./actions";
-import { container } from "tsyringe";
+} from "./responses";
+
 import { Gateway } from "./gateway";
 import { App } from "./app";
 import { startup } from "./startup";
@@ -50,11 +51,9 @@ app.start(commands)
   .then((_result) => {
     const readyStream$ = gateway.readyStream$;
     const messageStream$ = gateway.messageStream$;
-
     readyStream$.subscribe(() => {
       console.log(`Logged in as ${gateway.botUser()?.tag}!`);
     });
-    
     messageStream$.subscribe( async (message) => {
       if (message.author.bot) return;
       let mess = message.content;
@@ -90,6 +89,7 @@ app.start(commands)
         await message.reply(`${userToReply} - ${replyPun}`);
       });
     });
+    
     gateway.login();
   })
   .catch((err) => {
